@@ -1,8 +1,10 @@
-FROM maven:3.8.5-openjdk-17 AS build
+# Giai đoạn 1: Build bằng Maven và Java 21
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 COPY . .
 RUN mvn clean package -DskipTests
 
-FROM openjdk:17.0.1-jdk-slim
+# Giai đoạn 2: Chạy bằng Java 21 siêu nhẹ
+FROM eclipse-temurin:21-jre-jammy
 COPY --from=build /target/*.jar demo.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","demo.jar"]
