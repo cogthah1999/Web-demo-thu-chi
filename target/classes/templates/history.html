@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Lịch Sử Ví Điện Tử</title>
+    <style>
+        table { width: 50%; border-collapse: collapse; margin: 20px auto; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        #myChart { max-width: 100%; height: auto; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- THANH ĐĂNG NHẬP / ĐĂNG XUẤT -->
+    <div class="auth-bar">
+        <!-- Chỉ hiện khi CHƯA đăng nhập -->
+        <a sec:authorize="isAnonymous()" th:href="@{/login}" class="btn-login">🔑 Đăng nhập để quản lý</a>
+
+        <!-- Chỉ hiện khi ĐÃ đăng nhập -->
+        <div sec:authorize="isAuthenticated()">
+            <span>Xin chào, <strong th:text="${#authentication.name}"></strong> | </span>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn-logout">🚪 Đăng xuất</button>
+            </form>
+        </div>
+    </div>
+
+    <h2 style="text-align: center;">DANH SÁCH CHI TIÊU</h2>
+    <div style="text-align: center; background-color: #f8f9fa; padding: 15px; border-radius: 10px; width: 300px; margin: 0 auto 20px; border: 1px solid #ddd;">
+    <span style="font-size: 18px; color: #555;">Số dư hiện tại:</span><br>
+    <strong style="font-size: 24px; color: #2ecc71;" th:text="${#numbers.formatDecimal(totalBalance, 0, 'COMMA', 0, 'POINT')} + ' VND'"></strong>
+    </div>
+    <div style="text-align: center; margin-bottom: 15px;">
+    <form th:action="@{/}" method="get">
+        <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm theo tên (ví dụ: Tra sua)..." style="padding: 10px; width: 300px; border-radius: 20px; border: 1px solid #ddd;">
+        <button type="submit" style="padding: 10px 20px; border-radius: 20px; border: none; background-color: #34495e; color: white; cursor: pointer;">Tìm kiếm 🔍</button>
+    </form>
+    </div>
+    <div style="width: 300px; margin: 20px auto;">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    </div>
+</div>
+
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    // Lấy dữ liệu từ Spring Boot gửi sang
+    const summaryMap = /*[[${summaryMap}]]*/ [];
+
+
+    // Nếu có dữ liệu thì mới vẽ
+    if (Object.keys(summaryMap).length > 0) {
+        const labels = Object.keys(summaryMap);
+        const data = Object.values(summaryMap);
+
+        new Chart(document.getElementById('myChart'), {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tỷ lệ chi tiêu',
+                    data: data,
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+                        '#9966FF', '#FF9F40', '#C9CBCF'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+    /*]]>*/
+    </script>
+
+
+    <div sec:authorize="isAuthenticated()" style="text-align: center; margin-bottom: 20px;">
+    <form th:action="@{/add}" method="post" style="display: inline-block; border: 1px solid #ccc; padding: 20px; border-radius: 8px;">
+        <input type="text" name="paymentType" placeholder="Loại (Cash, Coin...)" required style="padding: 8px;">
+        <input type="number" name="amount" placeholder="Số tiền" required style="padding: 8px;">
+        <button type="submit" style="padding: 8px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">Thêm mới</button>
+    </form>
+</div>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Loại Giao Dịch</th>
+            <th>Số Tiền</th>
+        </tr>
+        <tr>    
+        </tr>
+        <tr th:each="p : ${payments}">
+            <td th:text="${p.id}"></td>
+            <td th:text="${p.paymentType}"></td>
+            <td th:text="${#numbers.formatDecimal(p.amount, 0, 'COMMA', 0, 'POINT')}" 
+                th:style="${p.amount > 100000000 ? 'color: red; font-weight: bold;' : 'color: black;'}">
+            </td>
+
+            <td sec:authorize="isAuthenticated()">
+                <a th:href="@{/edit/{id}(id=${p.id})}" style="color: blue; text-decoration: underline;">Sửa</a>
+                <a th:href="@{/delete/{id}(id=${p.id})}" style="color: red; text-decoration: underline; margin-left: 10px;" 
+                   onclick="return confirm('Bạn có chắc muốn xóa giao dịch này?');">Xóa</a>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
