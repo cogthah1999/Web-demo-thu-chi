@@ -21,7 +21,7 @@ function App() {
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem("darkMode") === "true";
   });
-  const API_URL = 'https://web-demo-thu-chi-my-wallet-api.onrender.com';
+  const API_URL = 'https://web-demo-thu-chi-my-wallet-api.onrender.com/api/payments';
   const ADMIN_KEY = 'my-secret-key-123'; // Khớp với Backend
 
   const fetchPayments = () => axios.get(API_URL).then(res => setPayments(res.data));
